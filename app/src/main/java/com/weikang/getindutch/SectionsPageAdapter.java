@@ -19,13 +19,12 @@ class SectionsPageAdapter extends FragmentPagerAdapter{
     }
     public SectionsPageAdapter(FragmentManager fm){
         super(fm);
-
     }
 
     @Nullable
     @Override
     public CharSequence getPageTitle(int position) {
-        return super.getPageTitle(position);
+        return mFragmentTitleList.get(position);
     }
 
     @Override

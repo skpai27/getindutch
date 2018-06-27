@@ -1,24 +1,28 @@
 package com.weikang.getindutch;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ListView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Arrays;
 
@@ -29,33 +33,39 @@ public class MainPage extends AppCompatActivity {
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mGroupDatabaseReference;
+    private DatabaseReference mFriendsDatabaseReference;
     private ProgressBar mProgressBar;
-    private Spinner mSortDropdown;
-    private FloatingActionButton mAddButton;
     private String mUsername;
-    private ListView mItemListView;
     private Toolbar mToolbar;
-
-    private SectionsPageAdapter mSectionsPageAdapter;
+    private ViewPager mViewPager;
+    private Dialog mDialogAddpopup;
+    private Dialog mDialogCreateGroup;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_page);
-        Log.d(TAG, "On create: Starting.");
-
 
         mUsername = GUEST;
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
+        mDialogAddpopup = new Dialog(this);
+        mDialogCreateGroup = new Dialog(this);
+
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        setupViewPage(mViewPager);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        tabLayout.setupWithViewPager(mViewPager);
 
         //initialising buttons
-        mAddButton = (FloatingActionButton) findViewById(R.id.addBtn);
-        mSortDropdown = (Spinner) findViewById(R.id.dropDown);
-        mItemListView = (ListView) findViewById(R.id.itemListView);
         mToolbar = (Toolbar) findViewById(R.id.mainPageToolbar);
         setSupportActionBar(mToolbar);
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups");
 
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -63,7 +73,7 @@ public class MainPage extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null){
                     //user is signed in
-                    Toast.makeText(MainPage.this,"Welcome to GetInDutch!", Toast.LENGTH_SHORT).show();
+                    mUsername = user.getDisplayName();
                 } else {
                     //user is signed out
                     startActivityForResult(
@@ -128,7 +138,66 @@ public class MainPage extends AppCompatActivity {
 
     private void setupViewPage(ViewPager viewPager){
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
+        adapter.addFragment(new AllPage(), "All");
         adapter.addFragment(new SummaryPage(),"Summary");
         viewPager.setAdapter(adapter);
+    }
+
+    public void showAddPopup(View view){
+        TextView textclose;
+        Button manualAdd;
+        Button receiptScan;
+        mDialogAddpopup.setContentView(R.layout.add_pop_up);
+        textclose = (TextView) mDialogAddpopup.findViewById(R.id.text_close);
+        manualAdd = (Button) mDialogAddpopup.findViewById(R.id.manual_add);
+        receiptScan = (Button) mDialogAddpopup.findViewById(R.id.scanner_receipt);
+        textclose.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mDialogAddpopup.dismiss();
+            }
+        });
+        mDialogAddpopup.show();
+        mDialogAddpopup.setCancelable(true);
+        manualAdd.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(MainPage.this, AddExpenses.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    public void showCreateGroup(View view){
+        TextView cancelBtn;
+        TextView nextBtn;
+        final EditText groupName;
+        mDialogCreateGroup.setContentView(R.layout.create_group_popup);
+        cancelBtn = (TextView) mDialogCreateGroup.findViewById(R.id.cancelBtn);
+        nextBtn = (TextView) mDialogCreateGroup.findViewById(R.id.nextBtn);
+        groupName = (EditText) mDialogCreateGroup.findViewById(R.id.groupName);
+        cancelBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mDialogCreateGroup.dismiss();
+            }
+        });
+        mDialogCreateGroup.show();
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String currGroupName = groupName.getText().toString();
+                if (currGroupName.isEmpty()){
+                    Toast.makeText(MainPage.this,"Please enter a group name!", Toast.LENGTH_SHORT).show();
+                } else {
+                    mDialogCreateGroup.dismiss();
+                    mDialogAddpopup.dismiss();
+                    Groups newGroup = new Groups(currGroupName);
+                    mGroupDatabaseReference.push().setValue(newGroup);
+                    Toast.makeText(MainPage.this,currGroupName + " has been successfully created!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
 }
