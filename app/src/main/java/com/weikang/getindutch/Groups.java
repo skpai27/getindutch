@@ -1,22 +1,19 @@
 package com.weikang.getindutch;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.firebase.database.DatabaseReference;
 
 public class Groups {
-    private String _groupName;
-    private List<Friends> _groupMembers;
+    private String name;
 
     public Groups(String name){
-        _groupName = name;
-        _groupMembers = new ArrayList<>();
+        name = name;
     }
 
-    public String get_groupName() {
-        return _groupName;
+    public String getName() {
+        return name;
     }
 
-    public void addMembers(Friends friend){
-        _groupMembers.add(friend);
+    public void addMembers(Users friend, DatabaseReference mFriendsDatabaseRef){
+        mFriendsDatabaseRef.child(friend.getName()).setValue(true);
     }
 }
