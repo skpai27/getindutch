@@ -11,19 +11,19 @@
     android:padding="5dp">
 
     <TextView
-        android:id="@+id/cancelBtn2"
+        android:id="@+id/cancelBtn3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Cancel"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/nextBtn2"
+        app:layout_constraintBottom_toBottomOf="@+id/nextBtn3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/nextBtn2"
+        android:id="@+id/nextBtn3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -34,7 +34,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/userName"
+        android:id="@+id/userName2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -44,5 +44,5 @@
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nextBtn2" />
+        app:layout_constraintTop_toBottomOf="@+id/cancelBtn3" />
 </android.support.constraint.ConstraintLayout>

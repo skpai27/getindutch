@@ -16,14 +16,14 @@
         android:focusableInTouchMode="true"
         android:clickable="true"
         android:focusable="true"
-        android:onClick="showFriendsAddPopup"
         android:tint="@android:color/white"
         app:backgroundTint="@android:color/holo_orange_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_input_add" />
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/friendsRecycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

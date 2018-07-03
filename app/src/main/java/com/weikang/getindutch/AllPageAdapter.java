@@ -1,6 +1,8 @@
 package com.weikang.getindutch;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,49 +12,57 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+public class AllPageAdapter extends RecyclerView.Adapter<AllPageAdapter.ViewHolder> {
 
 
-public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder> {
-
-
-    private ArrayList<Users> mFriends = new ArrayList<>();
+    private ArrayList<Groups> mGroups = new ArrayList<>();
     //private ArrayList<String> mImages = new ArrayList<>();
     private Context mContext;
+
+    //Firebase uid details
+    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    FirebaseUser mUser = mAuth.getCurrentUser();
+    String mUserId;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         //each dataItem is only just a string, we should create all the views needed here
         //declare all the views needed
-        TextView mUsername;
-        CircleImageView friendsProfilePic;
+        TextView mGroupName;
+        TextView mUserBalance;
+        CircleImageView mGroupImage;
         RelativeLayout mParentLayout;
 
         public ViewHolder(View itemView){
             super(itemView);
-            mUsername = itemView.findViewById(R.id.userName);
-            friendsProfilePic = itemView.findViewById(R.id.profilePic);
-            mParentLayout = itemView.findViewById(R.id.items_friends);
+            mGroupName = itemView.findViewById(R.id.group_name);
+            mUserBalance = itemView.findViewById(R.id.user_balance);
+            mGroupImage = itemView.findViewById(R.id.group_image);
+            mParentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }
 
     //provide a suitable constructor based on type of dataset
     //constructor will get the data we need
-    public FriendsAdapter(ArrayList<Users> friends, Context context){
+    public AllPageAdapter(ArrayList<Groups> Groups, Context context){
         //mImageNames = imageNames;
         //mImages = images;
-        mFriends = friends;
+        mGroups = Groups;
         mContext = context;
+        mUserId = mAuth.getUid();
     }
 
     //create new views (invoked by layout manager)
     @Override
-    public FriendsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+    public AllPageAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         //create new view //potential bug
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.items_friends,
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_all_page_adapter,
                 parent, false);
         ViewHolder vh = new ViewHolder(view);
         return vh;
@@ -64,25 +74,32 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         //get images
         Glide.with(mContext)
                 .asBitmap()
-                .load(mFriends.get(position).getPhotoUrl())
-                .into(holder.friendsProfilePic);
+                .load(mGroups.get(position).getPhotoUrl())
+                .into(holder.mGroupImage);
 
-        holder.mUsername.setText(mFriends.get(position).getName());
+        holder.mGroupName.setText(mGroups.get(position).getName());
+        Float balance = mGroups.get(position).getMembers().get(mUserId);
+        holder.mUserBalance.setText(String.valueOf(balance));
 
         //sets what happens when u click the object
         holder.mParentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
-                Toast.makeText(mContext, mFriends.get(position).getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mGroups.get(position).getName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(mContext,GroupsPage.class);
+                Bundle b = new Bundle();
+                b.putString("groupName",mGroups.get(position).getName());
+                intent.putExtras(b);
+                mContext.startActivity(intent);
             }
         });
     }
 
     public void clear() {
-        final int size = mFriends.size();
+        final int size = mGroups.size();
         if (size > 0) {
             for (int i = 0; i < size; i++) {
-                mFriends.remove(0);
+                mGroups.remove(0);
             }
 
             notifyItemRangeRemoved(0, size);
@@ -91,6 +108,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
 
     //return size of your dataset (invoked by layout manager)
     @Override
-    public int getItemCount(){ return mFriends.size(); }
+    public int getItemCount(){
+        return mGroups.size();
+    }
 }
-
