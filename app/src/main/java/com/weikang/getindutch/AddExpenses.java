@@ -2,6 +2,7 @@ package com.weikang.getindutch;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,19 +13,24 @@ import android.widget.Spinner;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class AddExpenses extends AppCompatActivity {
 
-    Spinner mPayeeSpinner;
-    Spinner mGroupSpinner;
-    EditText mExpense;
-    Button mButtonAdd;
-    FirebaseDatabase mFirebaseDatabase;
-    DatabaseReference mGroupDatabaseReference;
+    private Spinner mPayeeSpinner;
+    private Spinner mGroupSpinner;
+    private EditText mExpense;
+    private Button mButtonAdd;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mGroupDatabaseReference;
+    private ChildEventListener mChildEventListener;
 
-    String selectedGroup;
+    private String selectedGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,13 +77,26 @@ public class AddExpenses extends AppCompatActivity {
 
         mButtonAdd.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                Float expense = Float.parseFloat(mExpense.getText().toString())/2;
+                Float expense = Float.parseFloat(mExpense.getText().toString());
 
                 //Firebase Database variables
                 mFirebaseDatabase = FirebaseDatabase.getInstance();
                 //get reference to the group that was selected
                 mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups").child(selectedGroup).child("members");
 
+                //get size of group: (sk: added size attribute to group in database for this)
+                //use array of size1 to retrieve data from firebase cos of some variables problem
+                final int[] sizeOfGroup = new int[1];
+                mGroupDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        int sizeX = Integer.parseInt(dataSnapshot.child("size").getValue().toString());
+                        sizeOfGroup[0] = sizeX;
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {}
+                });
+                Float expenseToAdd = expense / sizeOfGroup[0];
                 //HARDCODED
                 mGroupDatabaseReference.child(mUserId).setValue(expense);
                 //below is test1 userid

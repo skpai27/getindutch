@@ -7,11 +7,13 @@ public class Groups {
     private String name;
     private String photoUrl;
     private HashMap<String, Float> members;
+    private int size;
 
     public Groups(String name, String photoUrl, HashMap<String, Float> members){
         this.name = name;
         this.photoUrl = photoUrl;
         this.members = members;
+        this.size = 0;
     }
 
     public Groups(String name, HashMap<String, Float> members){
@@ -28,6 +30,8 @@ public class Groups {
 
     public HashMap<String, Float> getMembers(){return members;}
 
+    public int getSize(){return size;}
+
     public void setName(String name){this.name = name;}
 
     public void setPhotoUrl(String photoUrl){this.photoUrl = photoUrl;}
@@ -35,7 +39,10 @@ public class Groups {
     public void addMembers(String memberUid){
         Float balance = new Float(0);
         members.put(memberUid,balance);
+        this.size++;
     }
+
+    public void setSize(int size){this.size = size;}
 
     public String toString(){
       return "Group name: " + name + ", members: " + members.toString();
