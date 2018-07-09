@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -35,10 +36,13 @@ public class AddExpenses extends AppCompatActivity {
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mUserGroupsDatabaseReference;
     private DatabaseReference mGroupDatabaseReference;
+    private DatabaseReference mGroupSizeDatabaseReference;
     private DatabaseReference mMembersDatabaseReference;
     private ChildEventListener mChildEventListener;
 
     private String selectedGroup;
+
+    private final String TAG = "AddExpensesActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,33 +79,37 @@ public class AddExpenses extends AppCompatActivity {
         mUserGroupsDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Log.i(TAG, "start of onDataChange function");
                 for(DataSnapshot groupSnapshot: dataSnapshot.getChildren()) {
                     String groupName = groupSnapshot.getKey();
                     groups.add(groupName);
+                    //Log.i(TAG, groupName);
                 }
+
+                //create arrayadapter using the list above and a default spinner layout
+                ArrayAdapter<String> groupSpinnerAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, groups);
+                groupSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                mGroupSpinner.setAdapter(groupSpinnerAdapter);
+                //Log.i(TAG, "Heya");
+                mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+                    @Override
+                    public void onItemSelected(AdapterView parent, View view, int position, long id){
+                        //Log.i(TAG, "OnItemSelected");
+                        selectedGroup = parent.getItemAtPosition(position).toString();
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView parent){}
+                });
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {}
         });
-        System.out.println(groups.toArray());
-        //create arrayadapter using the list above and a default spinner layout
-        ArrayAdapter<String> groupSpinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, groups);
-        groupSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mGroupSpinner.setAdapter(groupSpinnerAdapter);
+        //debug statement
+        Log.i(TAG, "before test forloop");
+        for (String item:groups){
+            Log.i(TAG, item);
+        }
 
-        mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
-            @Override
-            public void onItemSelected(AdapterView parent, View view, int position, long id){
-                selectedGroup = parent.getItemAtPosition(position).toString();
-                System.out.println(selectedGroup);
-                //((TextView) parent.getChildAt(0)).setTextColor(Color.BLACK);
-                //((TextView) parent.getChildAt(0)).setTextSize(5);
-            }
-            @Override
-            public void onNothingSelected(AdapterView parent){
-
-            }
-        });
 
         mButtonAdd.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -110,16 +118,17 @@ public class AddExpenses extends AppCompatActivity {
                 //Firebase Database variables
 
                 //get reference to the group that was selected
-                mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups").child(selectedGroup).child("members");
+                mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups").child(selectedGroup);
+                mGroupSizeDatabaseReference = mGroupDatabaseReference.child("size");
                 mMembersDatabaseReference = mGroupDatabaseReference.child("members");
 
                 //get size of group: (sk: added size attribute to group in database for this)
                 //use array of size1 to retrieve data from firebase cos of some variables problem
                 final int[] sizeOfGroup = new int[1];
-                mGroupDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                mGroupSizeDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        int sizeX = Integer.parseInt(dataSnapshot.child("size").getValue().toString());
+                        int sizeX = Integer.valueOf(dataSnapshot.getValue().toString());
                         sizeOfGroup[0] = sizeX;
                     }
                     @Override
