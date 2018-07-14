@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -74,27 +76,23 @@ public class AddExpenses extends AppCompatActivity {
         mGroupSpinner = findViewById(R.id.spinner_group);
         //create List of groups that user belongs to
         final List<String> groups = new ArrayList<String>();
-        //groups.add("alalala");
         mUserGroupsDatabaseReference = mFirebaseDatabase.getReference().child("users").child(mUserId).child("groups");
         mUserGroupsDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.i(TAG, "start of onDataChange function");
                 for(DataSnapshot groupSnapshot: dataSnapshot.getChildren()) {
                     String groupName = groupSnapshot.getKey();
                     groups.add(groupName);
-                    //Log.i(TAG, groupName);
                 }
 
                 //create arrayadapter using the list above and a default spinner layout
                 ArrayAdapter<String> groupSpinnerAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, groups);
                 groupSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 mGroupSpinner.setAdapter(groupSpinnerAdapter);
-                //Log.i(TAG, "Heya");
+
                 mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                     @Override
                     public void onItemSelected(AdapterView parent, View view, int position, long id){
-                        //Log.i(TAG, "OnItemSelected");
                         selectedGroup = parent.getItemAtPosition(position).toString();
                     }
                     @Override
@@ -104,12 +102,6 @@ public class AddExpenses extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {}
         });
-        //debug statement
-        Log.i(TAG, "before test forloop");
-        for (String item:groups){
-            Log.i(TAG, item);
-        }
-
 
         mButtonAdd.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -125,42 +117,66 @@ public class AddExpenses extends AppCompatActivity {
                 //get size of group: (sk: added size attribute to group in database for this)
                 //use array of size1 to retrieve data from firebase cos of some variables problem
                 final int[] sizeOfGroup = new int[1];
-                mGroupSizeDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                mGroupDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        int sizeX = Integer.valueOf(dataSnapshot.getValue().toString());
+                        int sizeX = Integer.valueOf(dataSnapshot.child("size").getValue().toString());
                         sizeOfGroup[0] = sizeX;
+
+                        //Iterating through each user to add the expense
+                        final Float expenseToAdd = expense / sizeOfGroup[0];
+
+                        //iterating through each member in the group using childeventlistener
+                        mMembersDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Log.i(TAG, "start of onDataChange");
+                                for (DataSnapshot memberSnapshot : dataSnapshot.getChildren()) {
+                                    if (memberSnapshot.getKey().equals(mUserId)) {
+                                        float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) + expense - expenseToAdd;
+                                        Log.i(TAG, expense.toString());
+                                        mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
+                                    } else {
+                                        float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) - expenseToAdd;
+                                        mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                            }
+                        });
                     }
+                        /*mChildEventListener = new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                                //if current member is the USER himself
+                                if(dataSnapshot.getKey() == mUserId){
+                                    float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) + expense - expenseToAdd;
+                                    mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
+                                }
+                                else{
+                                    float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) - expenseToAdd;
+                                    mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
+                                }
+                            }
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {}
+                        };
+                        mMembersDatabaseReference.addChildEventListener(mChildEventListener);
+                        mMembersDatabaseReference.removeEventListener(mChildEventListener);//redundancy
+                    }*/
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {}
                 });
-                final Float expenseToAdd = expense / sizeOfGroup[0];
 
-                //iterating through each member in the group using childeventlistener
-                mChildEventListener = new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                        //if current member is the USER himself
-                        if(dataSnapshot.getKey() == mUserId){
-                            float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) + expense - expenseToAdd;
-                            mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
-                        }
-                        else{
-                            float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) - expenseToAdd;
-                            mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
-                        }
-                    }
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {}
-                };
-                mMembersDatabaseReference.addChildEventListener(mChildEventListener);
-                mMembersDatabaseReference.removeEventListener(mChildEventListener);//redundancy
 
                 //HARDCODED
                 //mGroupDatabaseReference.child(mUserId).setValue(expense);
@@ -170,7 +186,7 @@ public class AddExpenses extends AppCompatActivity {
                 //TODO: retrieve size of group, divide expense, reduce users expense, add to other members expense
                 //get original balances\
                 //long userBalance =
-
+                Toast.makeText(getApplicationContext(),"Expense added!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(AddExpenses.this,MainPage.class);
                 startActivity(intent);
             }
