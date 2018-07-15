@@ -42,6 +42,9 @@ public class AddExpenses extends AppCompatActivity {
     private DatabaseReference mMembersDatabaseReference;
     private ChildEventListener mChildEventListener;
 
+    //RecyclerView for members to split bill with
+    UserAddExpenseAdapter adapter;
+
     private String selectedGroup;
 
     private final String TAG = "AddExpensesActivity";
@@ -148,44 +151,11 @@ public class AddExpenses extends AppCompatActivity {
                             }
                         });
                     }
-                        /*mChildEventListener = new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                                //if current member is the USER himself
-                                if(dataSnapshot.getKey() == mUserId){
-                                    float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) + expense - expenseToAdd;
-                                    mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
-                                }
-                                else{
-                                    float newValue = Integer.parseInt(dataSnapshot.getValue().toString()) - expenseToAdd;
-                                    mMembersDatabaseReference.child(dataSnapshot.getKey()).setValue(newValue);
-                                }
-                            }
-                            @Override
-                            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-                            @Override
-                            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
-                            @Override
-                            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {}
-                        };
-                        mMembersDatabaseReference.addChildEventListener(mChildEventListener);
-                        mMembersDatabaseReference.removeEventListener(mChildEventListener);//redundancy
-                    }*/
+
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {}
                 });
 
-
-                //HARDCODED
-                //mGroupDatabaseReference.child(mUserId).setValue(expense);
-                //below is test1 userid
-                //mGroupDatabaseReference.child("XIihVerGHgRgqKfAeL2vs9gbkf02").setValue(expense * -1);
-
-                //TODO: retrieve size of group, divide expense, reduce users expense, add to other members expense
-                //get original balances\
-                //long userBalance =
                 Toast.makeText(getApplicationContext(),"Expense added!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(AddExpenses.this,MainPage.class);
                 startActivity(intent);

@@ -119,17 +119,10 @@ public class AllPage extends Fragment {
                     });
                 }
 
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                }
-
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-                }
-
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                }
-
-                public void onCancelled(DatabaseError databaseError) {
-                }
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+                public void onChildRemoved(DataSnapshot dataSnapshot) {}
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+                public void onCancelled(DatabaseError databaseError) {}
             };
             //add a child event listener. SO the reference (mGroupDatabaseRef) defines which part of
             //database to listen to, mchildEventlistener defines what to do
