@@ -16,10 +16,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAdapter.MyHolder> {
     Context c;
-    UserAddExpense[] users;
+    ArrayList<UserAddExpense> users = new ArrayList<>();
     ArrayList<UserAddExpense> checkedUsers = new ArrayList<>();
 
-    public UserAddExpenseAdapter(Context c, UserAddExpense[] users){
+    public UserAddExpenseAdapter(Context c, ArrayList<UserAddExpense> users){
         this.c = c;
         this.users = users;
     }
@@ -35,7 +35,7 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
     //data bound to views
     @Override
     public void onBindViewHolder(MyHolder holder, int position){
-        final UserAddExpense user = users[position];
+        final UserAddExpense user = users.get(position);
 
         //get images
         Glide.with(c)
@@ -50,7 +50,7 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
             @Override
             public void onItemClick(View v, int pos){
                 CheckBox myCheckBox = (CheckBox) v;
-                UserAddExpense currentUser = users[pos];
+                UserAddExpense currentUser = users.get(pos);
 
                 if(myCheckBox.isChecked()){
                     currentUser.setSelected(true);
@@ -65,7 +65,7 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
     }
     @Override
     public int getItemCount(){
-        return users.length;
+        return users.size();
     }
 
     static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -91,6 +91,17 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
         }
         interface ItemClickListener{
             void onItemClick(View v, int pos);
+        }
+    }
+
+    public void clear() {
+        final int size = users.size();
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                users.remove(0);
+            }
+
+            notifyItemRangeRemoved(0, size);
         }
     }
 

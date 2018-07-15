@@ -7,6 +7,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.data.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -43,7 +46,8 @@ public class AddExpenses extends AppCompatActivity {
     private ChildEventListener mChildEventListener;
 
     //RecyclerView for members to split bill with
-    UserAddExpenseAdapter adapter;
+    private UserAddExpenseAdapter mAdapter;
+    private RecyclerView mRecyclerView;
 
     private String selectedGroup;
 
@@ -66,6 +70,15 @@ public class AddExpenses extends AppCompatActivity {
         //initialise button
         mButtonAdd = findViewById(R.id.button_add);
 
+        //RecyclerView config
+        //initialise array of users first, 10 is an arbitrary number for now
+        ArrayList<UserAddExpense> mUsers = new ArrayList<>();
+        //Initialise Adapter and recyclerview etc
+        mRecyclerView = findViewById(R.id.recyclerView);
+        //use getActivity() instead of (this) for context cos this is a fragment
+        mAdapter = new UserAddExpenseAdapter(this, mUsers);
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         //Configuring Payee Spinner
         mPayeeSpinner = findViewById(R.id.spinner_payee);
@@ -97,6 +110,7 @@ public class AddExpenses extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView parent, View view, int position, long id){
                         selectedGroup = parent.getItemAtPosition(position).toString();
+                        //TODO: execute function to update recyclerview
                     }
                     @Override
                     public void onNothingSelected(AdapterView parent){}
@@ -163,5 +177,13 @@ public class AddExpenses extends AppCompatActivity {
         });
     }
 
+    //function to change the recyclerview everytime the selection of the group changes
+    private void changeAdapter(RecyclerView mRecyclerView, UserAddExpenseAdapter mAdapter){
+        mRecyclerView.setAdapter(null);
+        mAdapter.clear();
+
+
+    }
 
 }
+
