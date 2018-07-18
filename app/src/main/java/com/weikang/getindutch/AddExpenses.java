@@ -41,6 +41,7 @@ public class AddExpenses extends AppCompatActivity {
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mUserGroupsDatabaseReference;
     private DatabaseReference mGroupDatabaseReference;
+    private DatabaseReference mUserReference;
     private DatabaseReference mGroupSizeDatabaseReference;
     private DatabaseReference mMembersDatabaseReference;
     private ChildEventListener mChildEventListener;
@@ -71,8 +72,7 @@ public class AddExpenses extends AppCompatActivity {
         mButtonAdd = findViewById(R.id.button_add);
 
         //RecyclerView config
-        //initialise array of users first, 10 is an arbitrary number for now
-        ArrayList<UserAddExpense> mUsers = new ArrayList<>();
+        final ArrayList<UserAddExpense> mUsers = new ArrayList<>();
         //Initialise Adapter and recyclerview etc
         mRecyclerView = findViewById(R.id.recyclerView);
         //use getActivity() instead of (this) for context cos this is a fragment
@@ -110,6 +110,7 @@ public class AddExpenses extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView parent, View view, int position, long id){
                         selectedGroup = parent.getItemAtPosition(position).toString();
+                        //refreshAdapter(mUserId, mUsers);
                         //TODO: execute function to update recyclerview
                     }
                     @Override
@@ -178,10 +179,34 @@ public class AddExpenses extends AppCompatActivity {
     }
 
     //function to change the recyclerview everytime the selection of the group changes
-    private void changeAdapter(RecyclerView mRecyclerView, UserAddExpenseAdapter mAdapter){
+    private void refreshAdapter(final String mUserId, final ArrayList<UserAddExpense> mUsers){
         mRecyclerView.setAdapter(null);
         mAdapter.clear();
+        mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups").child(selectedGroup).child("members");
+        mGroupDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
+                for (final DataSnapshot memberSnapshot : dataSnapshot.getChildren()){
+                    if(!memberSnapshot.getKey().equals(mUserId)) {
+                        mUserReference = mFirebaseDatabase.getReference().child("users").child(memberSnapshot.getKey());
+                        mUserReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                String userName = dataSnapshot.child(memberSnapshot.getKey()).toString();
+                                mUsers.add(new UserAddExpense(mUserId, userName));
+                                mAdapter.notifyItemInserted(mUsers.size() - 1);
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {}
+                        });
+
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {}
+        });
 
     }
 
