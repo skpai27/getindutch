@@ -110,7 +110,7 @@ public class AddExpenses extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView parent, View view, int position, long id){
                         selectedGroup = parent.getItemAtPosition(position).toString();
-                        //refreshAdapter(mUserId, mUsers);
+                        refreshAdapter(mUserId, mUsers);
                         //TODO: execute function to update recyclerview
                     }
                     @Override
@@ -124,7 +124,10 @@ public class AddExpenses extends AppCompatActivity {
         mButtonAdd.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 final Float expense = Float.parseFloat(mExpense.getText().toString());
-
+                Log.i(TAG, "before user.getiud");
+                for(UserAddExpense user:mAdapter.checkedUsers){
+                    Log.i(TAG, user.getUid());
+                }
                 //Firebase Database variables
 
                 //get reference to the group that was selected
@@ -148,11 +151,11 @@ public class AddExpenses extends AppCompatActivity {
                         mMembersDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                Log.i(TAG, "start of onDataChange");
+
                                 for (DataSnapshot memberSnapshot : dataSnapshot.getChildren()) {
                                     if (memberSnapshot.getKey().equals(mUserId)) {
                                         float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) + expense - expenseToAdd;
-                                        Log.i(TAG, expense.toString());
+
                                         mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
                                     } else {
                                         float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) - expenseToAdd;
@@ -193,7 +196,7 @@ public class AddExpenses extends AppCompatActivity {
                         mUserReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                String userName = dataSnapshot.child(memberSnapshot.getKey()).toString();
+                                String userName = dataSnapshot.child("name").getValue().toString();
                                 mUsers.add(new UserAddExpense(mUserId, userName));
                                 mAdapter.notifyItemInserted(mUsers.size() - 1);
                             }
@@ -203,6 +206,7 @@ public class AddExpenses extends AppCompatActivity {
 
                     }
                 }
+                mRecyclerView.setAdapter(mAdapter);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {}

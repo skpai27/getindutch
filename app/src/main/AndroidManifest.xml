@@ -16,7 +16,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AddExpenses" />
+        <activity android:name=".AddExpenses"
+            android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".GroupsPage"></activity>
     </application>
 
