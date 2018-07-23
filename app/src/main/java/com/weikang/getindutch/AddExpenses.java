@@ -197,7 +197,7 @@ public class AddExpenses extends AppCompatActivity {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 String userName = dataSnapshot.child("name").getValue().toString();
-                                mUsers.add(new UserAddExpense(mUserId, userName));
+                                mUsers.add(new UserAddExpense(memberSnapshot.getKey(), userName));
                                 mAdapter.notifyItemInserted(mUsers.size() - 1);
                             }
                             @Override

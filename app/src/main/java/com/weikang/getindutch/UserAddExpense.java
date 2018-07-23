@@ -19,6 +19,8 @@ public class UserAddExpense {
         this.uid = uid;
         this.name = name;
         this.photoUrl = photoUrl;
+        //set by default true
+        this.isSelected = true;
     }
 
     public String getName() {

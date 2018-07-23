@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -44,9 +45,15 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
                 .into(holder.mUserImage);
 
         holder.mUserName.setText(user.getName());
-        holder.mCheckBox.setChecked(user.isSelected());
+        holder.mCheckBox.setChecked(true);
 
-        holder.setItemClickListener(new MyHolder.ItemClickListener(){
+        holder.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // update your model (or other business logic) based on isChecked
+            }
+        });
+
+        /*holder.setItemClickListener(new MyHolder.ItemClickListener(){
             @Override
             public void onItemClick(View v, int pos){
                 CheckBox myCheckBox = (CheckBox) v;
@@ -61,7 +68,7 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
                     checkedUsers.remove(currentUser);
                 }
             }
-        });
+        });*/
     }
     @Override
     public int getItemCount(){
