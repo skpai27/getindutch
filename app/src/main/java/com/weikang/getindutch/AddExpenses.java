@@ -60,7 +60,7 @@ public class AddExpenses extends AppCompatActivity {
         setContentView(R.layout.add_expenses_manual);
 
         //Firebase Auth variables
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        final FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser mUser = mAuth.getCurrentUser();
         final String mUserId = mUser.getUid();
 
@@ -124,12 +124,17 @@ public class AddExpenses extends AppCompatActivity {
         mButtonAdd.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 final Float expense = Float.parseFloat(mExpense.getText().toString());
-                Log.i(TAG, "before user.getiud");
+                /*Log.i(TAG, "before user.getiud");
                 for(UserAddExpense user:mAdapter.checkedUsers){
-                    Log.i(TAG, user.getUid());
+                    Log.i(TAG, user.getName());
+                }*/
+                //to insert all Uids into an arraylist so that we can check if they are selected
+                final ArrayList<String> selectedUserUids = new ArrayList<>();
+                for(UserAddExpense user:mAdapter.checkedUsers){
+                    selectedUserUids.add(user.getUid());
                 }
-                //Firebase Database variables
 
+                //Firebase Database variables
                 //get reference to the group that was selected
                 mGroupDatabaseReference = mFirebaseDatabase.getReference().child("groups").child(selectedGroup);
                 mGroupSizeDatabaseReference = mGroupDatabaseReference.child("size");
@@ -137,15 +142,17 @@ public class AddExpenses extends AppCompatActivity {
 
                 //get size of group: (sk: added size attribute to group in database for this)
                 //use array of size1 to retrieve data from firebase cos of some variables problem
-                final int[] sizeOfGroup = new int[1];
+
+                //final int[] sizeOfGroup = new int[1];
+                //this might be unnecessary alr cos now using size of arrayList checkedUsers for size
                 mGroupDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        int sizeX = Integer.valueOf(dataSnapshot.child("size").getValue().toString());
-                        sizeOfGroup[0] = sizeX;
+                        //int sizeX = Integer.valueOf(dataSnapshot.child("size").getValue().toString());
+                        //sizeOfGroup[0] = sizeX;
 
                         //Iterating through each user to add the expense
-                        final Float expenseToAdd = expense / sizeOfGroup[0];
+                        final Float expenseToAdd = expense / (mAdapter.checkedUsers.size() + 1);
 
                         //iterating through each member in the group using childeventlistener
                         mMembersDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -158,8 +165,10 @@ public class AddExpenses extends AppCompatActivity {
 
                                         mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
                                     } else {
-                                        float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) - expenseToAdd;
-                                        mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
+                                        if(selectedUserUids.contains(memberSnapshot.getKey())) {
+                                            float newValue = Float.parseFloat(memberSnapshot.getValue().toString()) - expenseToAdd;
+                                            mMembersDatabaseReference.child(memberSnapshot.getKey()).setValue(newValue);
+                                        }
                                     }
                                 }
                             }
@@ -197,7 +206,9 @@ public class AddExpenses extends AppCompatActivity {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 String userName = dataSnapshot.child("name").getValue().toString();
-                                mUsers.add(new UserAddExpense(memberSnapshot.getKey(), userName));
+                                UserAddExpense newUser = new UserAddExpense(memberSnapshot.getKey(), userName);
+                                mUsers.add(newUser);
+                                mAdapter.checkedUsers.add(newUser);
                                 mAdapter.notifyItemInserted(mUsers.size() - 1);
                             }
                             @Override

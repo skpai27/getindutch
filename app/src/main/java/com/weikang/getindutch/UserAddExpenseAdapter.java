@@ -49,7 +49,11 @@ public class UserAddExpenseAdapter extends RecyclerView.Adapter<UserAddExpenseAd
 
         holder.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // update your model (or other business logic) based on isChecked
+                if(isChecked){
+                    checkedUsers.add(user);// update your model (or other business logic) based on isChecked
+                }else{
+                    checkedUsers.remove(user);
+                }
             }
         });
 
